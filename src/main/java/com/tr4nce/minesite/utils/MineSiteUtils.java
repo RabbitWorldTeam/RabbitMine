@@ -2,11 +2,6 @@ package com.tr4nce.minesite.utils;
 
 import net.minecraft.core.BlockPos;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-
 public class MineSiteUtils {
     // 解析方块位置
     public static BlockPos parseBlockPos(String posStr) {
@@ -15,17 +10,6 @@ public class MineSiteUtils {
         int y = Integer.parseInt(parts[1]);
         int z = Integer.parseInt(parts[2]);
         return new BlockPos(x, y, z);
-    }
-
-    // 格式化时间间隔
-    public static String formatDuration(long seconds) {
-        if (seconds < 60) {
-            return seconds + "秒";
-        } else if (seconds < 3600) {
-            return seconds / 60 + "分钟";
-        } else {
-            return seconds / 3600 + "小时" + (seconds % 3600) / 60 + "分钟";
-        }
     }
 
     // 计算每秒处理的方块数
@@ -52,14 +36,6 @@ public class MineSiteUtils {
         } else {
             return String.format("%d秒", secs);
         }
-    }
-
-    // 计算下一次刷新时间
-    public static ZonedDateTime calculateNextRefresh(String refreshInterval, String timezone) {
-        // 将 refreshInterval 解析为 ZonedDateTime
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(timezone));
-        ZonedDateTime nextRefresh = now.plusSeconds(Integer.parseInt(refreshInterval));
-        return nextRefresh.truncatedTo(ChronoUnit.SECONDS);
     }
 
     public static class RegionBounds {
@@ -94,17 +70,6 @@ public class MineSiteUtils {
                     Math.max(corner1.getZ(), corner2.getZ())
             );
         }
-        // 可选：直接使用六个参数的工厂方法
-        public static RegionBounds of(int x1, int y1, int z1, int x2, int y2, int z2) {
-            return new RegionBounds(
-                    Math.min(x1, x2),
-                    Math.min(y1, y2),
-                    Math.min(z1, z2),
-                    Math.max(x1, x2),
-                    Math.max(y1, y2),
-                    Math.max(z1, z2)
-            );
-        }
         // Getter方法
         public int getMinX() { return minX; }
         public int getMinY() { return minY; }
@@ -112,15 +77,5 @@ public class MineSiteUtils {
         public int getMaxX() { return maxX; }
         public int getMaxY() { return maxY; }
         public int getMaxZ() { return maxZ; }
-        // 实用方法：计算区域体积
-        public int getVolume() {
-            return (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
-        }
-        // 实用方法：检查点是否在区域内
-        public boolean contains(BlockPos pos) {
-            return pos.getX() >= minX && pos.getX() <= maxX &&
-                    pos.getY() >= minY && pos.getY() <= maxY &&
-                    pos.getZ() >= minZ && pos.getZ() <= maxZ;
-        }
     }
 }

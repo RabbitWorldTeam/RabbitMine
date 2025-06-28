@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 public class MineSiteConfigService {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -74,21 +73,6 @@ public class MineSiteConfigService {
         site.addProperty("pos2", formatBlockPos(pos2));
         site.addProperty("safetyPoint", "");
         site.addProperty("status", "inactive"); // 初始状态为未激活
-        site.addProperty("broadcastInterval", 300); // 默认广播间隔为5分钟
-        site.addProperty("refreshInterval", 60);
-
-        // 默认矿场开启时间
-        JsonArray timeTable = new JsonArray();
-        List<Integer> weekdays = List.of(0, 1, 2, 3, 4, 5, 6); // 周日到周六
-        for (int weekday : weekdays) {
-            JsonObject timeEntry = new JsonObject();
-            timeEntry.addProperty("weekday", weekday);
-            timeEntry.addProperty("startTime", "00:00");
-            timeEntry.addProperty("endTime", "23:59");
-            timeEntry.addProperty("fullDayClose", false); // 默认不全天关闭
-            timeTable.add(timeEntry);
-        }
-        site.add("timeTable", timeTable);
 
         // 默认矿石配置
         JsonArray mines = new JsonArray();
