@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 public class MineSiteUtils {
     // 解析方块位置
@@ -39,11 +40,87 @@ public class MineSiteUtils {
         return nanoTime / 1_000_000.0;
     }
 
+    // 秒换算
+    public static String secondsToTime(long seconds) {
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+        if (hours > 0) {
+            return String.format("%d小时%d分钟%d秒", hours, minutes, secs);
+        } else if (minutes > 0) {
+            return String.format("%d分钟%d秒", minutes, secs);
+        } else {
+            return String.format("%d秒", secs);
+        }
+    }
+
     // 计算下一次刷新时间
     public static ZonedDateTime calculateNextRefresh(String refreshInterval, String timezone) {
         // 将 refreshInterval 解析为 ZonedDateTime
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of(timezone));
         ZonedDateTime nextRefresh = now.plusSeconds(Integer.parseInt(refreshInterval));
         return nextRefresh.truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    public static class RegionBounds {
+        private final int minX;
+        private final int minY;
+        private final int minZ;
+        private final int maxX;
+        private final int maxY;
+        private final int maxZ;
+        // 私有构造方法
+        private RegionBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+            // 验证参数有效性
+            if (minX > maxX || minY > maxY || minZ > maxZ) {
+                throw new IllegalArgumentException("Min values must be less than or equal to max values");
+            }
+
+            this.minX = minX;
+            this.minY = minY;
+            this.minZ = minZ;
+            this.maxX = maxX;
+            this.maxY = maxY;
+            this.maxZ = maxZ;
+        }
+        // 工厂方法：从两个对角点创建区域
+        public static RegionBounds fromCorners(BlockPos corner1, BlockPos corner2) {
+            return new RegionBounds(
+                    Math.min(corner1.getX(), corner2.getX()),
+                    Math.min(corner1.getY(), corner2.getY()),
+                    Math.min(corner1.getZ(), corner2.getZ()),
+                    Math.max(corner1.getX(), corner2.getX()),
+                    Math.max(corner1.getY(), corner2.getY()),
+                    Math.max(corner1.getZ(), corner2.getZ())
+            );
+        }
+        // 可选：直接使用六个参数的工厂方法
+        public static RegionBounds of(int x1, int y1, int z1, int x2, int y2, int z2) {
+            return new RegionBounds(
+                    Math.min(x1, x2),
+                    Math.min(y1, y2),
+                    Math.min(z1, z2),
+                    Math.max(x1, x2),
+                    Math.max(y1, y2),
+                    Math.max(z1, z2)
+            );
+        }
+        // Getter方法
+        public int getMinX() { return minX; }
+        public int getMinY() { return minY; }
+        public int getMinZ() { return minZ; }
+        public int getMaxX() { return maxX; }
+        public int getMaxY() { return maxY; }
+        public int getMaxZ() { return maxZ; }
+        // 实用方法：计算区域体积
+        public int getVolume() {
+            return (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+        }
+        // 实用方法：检查点是否在区域内
+        public boolean contains(BlockPos pos) {
+            return pos.getX() >= minX && pos.getX() <= maxX &&
+                    pos.getY() >= minY && pos.getY() <= maxY &&
+                    pos.getZ() >= minZ && pos.getZ() <= maxZ;
+        }
     }
 }

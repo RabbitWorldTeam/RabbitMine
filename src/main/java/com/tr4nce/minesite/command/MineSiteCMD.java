@@ -162,6 +162,9 @@ public class MineSiteCMD {
                 // 重载矿场刷新服务
                 MineSiteRefreshService.reloadSites();
 
+                // 清除矿场区域
+                MineSiteRefreshService.prepareSiteRefresh(name);
+
                 ctx.getSource().sendSuccess(
                         () -> Component.literal("§a成功启用矿场: " + name),
                         false
@@ -192,6 +195,9 @@ public class MineSiteCMD {
 
                 // 重载矿场刷新服务
                 MineSiteRefreshService.reloadSites();
+
+                // 清除矿场区域
+                MineSiteRefreshService.clearSiteArea(name);
 
                 ctx.getSource().sendSuccess(
                         () -> Component.literal("§a成功禁用矿场: " + name),
