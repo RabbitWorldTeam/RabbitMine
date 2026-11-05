@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -244,6 +245,8 @@ public class RabbitMineRefreshService {
                 Map<BlockPos, BlockState> blockStates = new HashMap<>();
                 JsonArray mines = site.getAsJsonArray("mines");
                 List<WeightedBlock> weightedBlocks = parseWeightedBlocks(mines);
+                double maxWeight = weightedBlocks.stream().mapToDouble(WeightedBlock::weight).max().orElseThrow();
+                double totalWeight = weightedBlocks.stream().mapToDouble(block -> block.weight() / maxWeight).sum();
 
                 // 计算区域范围
                 RabbitMineUtils.RegionBounds mineArea = RabbitMineUtils.RegionBounds.fromCorners(pos1, pos2);
@@ -256,7 +259,7 @@ public class RabbitMineRefreshService {
                             BlockPos pos = new BlockPos(x, y, z);
                             positions.add(pos);
                             // 随机选择方块状态
-                            BlockState state = chooseRandomBlockState(weightedBlocks);
+                            BlockState state = chooseRandomBlockState(weightedBlocks, maxWeight, totalWeight);
                             blockStates.put(pos, state);
                         }
                     }
@@ -329,11 +332,11 @@ public class RabbitMineRefreshService {
         for (JsonElement element : minesArray) {
             JsonObject mine = element.getAsJsonObject();
             String blockId = mine.get("block").getAsString();
-            int weight = mine.get("weight").getAsInt();
+            double weight = mine.get("weight").getAsDouble();
 
             ResourceLocation id = ResourceLocation.tryParse(blockId);
             Block block = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
-            if (block != null) {
+            if (block != null && Double.isFinite(weight) && weight > 0) {
                 blocks.add(new WeightedBlock(block.defaultBlockState(), weight));
             }
         }
@@ -347,19 +350,16 @@ public class RabbitMineRefreshService {
     }
 
     // 随机选择方块状态
-    private static BlockState chooseRandomBlockState(List<WeightedBlock> weightedBlocks) {
-        int totalWeight = weightedBlocks.stream().mapToInt(wb -> wb.weight).sum();
-        int random = new Random().nextInt(totalWeight);
-        int current = 0;
-
-        for (WeightedBlock wb : weightedBlocks) {
-            current += wb.weight;
-            if (random < current) {
-                return wb.state;
+    private static BlockState chooseRandomBlockState(List<WeightedBlock> weightedBlocks,
+                                                     double maxWeight, double totalWeight) {
+        double remaining = ThreadLocalRandom.current().nextDouble(totalWeight);
+        for (WeightedBlock block : weightedBlocks) {
+            remaining -= block.weight() / maxWeight;
+            if (remaining < 0) {
+                return block.state();
             }
         }
-
-        return weightedBlocks.get(0).state;
+        return weightedBlocks.getLast().state();
     }
 
     // 处理刷新任务
@@ -566,6 +566,6 @@ public class RabbitMineRefreshService {
     }
 
     // 权重方块类
-    private record WeightedBlock(BlockState state, int weight) {
+    private record WeightedBlock(BlockState state, double weight) {
     }
 }
