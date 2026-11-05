@@ -24,3 +24,7 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+
+# IntelliJ IDEA local project files
+/.idea/
+*.iml
