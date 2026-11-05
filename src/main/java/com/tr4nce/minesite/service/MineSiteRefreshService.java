@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -41,6 +42,9 @@ public class MineSiteRefreshService {
     private static final Map<String, JsonObject> siteConfigs = new ConcurrentHashMap<>();
     // 矿场维度缓存
     private static final Map<String, ResourceKey<Level>> siteDimensions = new ConcurrentHashMap<>();
+    // 区块加载任务
+    private static final Map<String, Queue<ChunkPos>> siteChunkLoadingQueues = new HashMap<>();
+    private static final Map<String, Set<ChunkPos>> siteLoadedChunks = new HashMap<>();
     // 跟踪已经清除的矿场区域
     private static final Set<String> clearedSites = ConcurrentHashMap.newKeySet();
     private static final Logger LOGGER = LogUtils.getLogger();
