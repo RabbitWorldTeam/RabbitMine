@@ -1,0 +1,23 @@
+{
+  "parent": "rabbitmine:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:clock"
+    },
+    "title": {
+      "translate": "advancements.rabbitmine.next_round.title"
+    },
+    "description": {
+      "translate": "advancements.rabbitmine.next_round.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  },
+  "criteria": {
+    "return": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

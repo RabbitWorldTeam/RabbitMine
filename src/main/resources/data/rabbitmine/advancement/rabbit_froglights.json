@@ -1,0 +1,29 @@
+{
+  "parent": "rabbitmine:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:pearlescent_froglight"
+    },
+    "title": {
+      "translate": "advancements.rabbitmine.rabbit_froglights.title"
+    },
+    "description": {
+      "translate": "advancements.rabbitmine.rabbit_froglights.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  },
+  "criteria": {
+    "pearlescent": {
+      "trigger": "minecraft:impossible"
+    },
+    "verdant": {
+      "trigger": "minecraft:impossible"
+    },
+    "ochre": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
