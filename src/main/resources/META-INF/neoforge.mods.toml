@@ -1,0 +1,24 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="rabbitmine"
+version="${modVersion}"
+displayName="RabbitMine"
+authors="TR4NCE"
+description="Custom mining sites for Rabbit House."
+
+[[dependencies.rabbitmine]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.265,21.2)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.rabbitmine]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1,1.21.2)"
+ordering="NONE"
+side="BOTH"

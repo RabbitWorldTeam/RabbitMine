@@ -1,7 +1,7 @@
-package com.tr4nce.minesite.utils;
+package com.tr4nce.rabbitmine.utils;
 
-import com.tr4nce.minesite.MineSite;
-import com.tr4nce.minesite.config.Config;
+import com.tr4nce.rabbitmine.RabbitMine;
+import com.tr4nce.rabbitmine.config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -11,15 +11,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-@Mod.EventBusSubscriber(modid = MineSite.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = RabbitMine.MODID)
 public class RegionSelector {
     private static final Map<String, BlockPos> leftClickPositions = new HashMap<>();
     private static final Map<String, BlockPos> rightClickPositions = new HashMap<>();
@@ -119,7 +119,7 @@ public class RegionSelector {
             player.sendSystemMessage(
                     Component.literal("§a区域大小: §e" + width + " x " + height + " x " + depth + " (" + volume + "个方块)")
             );
-            player.sendSystemMessage(Component.literal("§a现在可以使用 §e/minesite create <名称> §a创建矿场!"));
+            player.sendSystemMessage(Component.literal("§a现在可以使用 §e/RabbitMine create <名称> §a创建矿场!"));
         } else {
             player.sendSystemMessage(Component.literal("§c请先完成左键和右键的选择。"));
         }

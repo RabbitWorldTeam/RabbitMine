@@ -1,12 +1,13 @@
-package com.tr4nce.minesite.service;
+package com.tr4nce.rabbitmine.service;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.logging.LogUtils;
-import com.tr4nce.minesite.MineSite;
-import com.tr4nce.minesite.config.Config;
-import com.tr4nce.minesite.utils.MineSiteUtils;
+import com.tr4nce.rabbitmine.RabbitMine;
+import com.tr4nce.rabbitmine.config.Config;
+import com.tr4nce.rabbitmine.utils.RabbitMineUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -20,11 +21,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -32,8 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-@Mod.EventBusSubscriber(modid = MineSite.MODID)
-public class MineSiteRefreshService {
+@EventBusSubscriber(modid = RabbitMine.MODID)
+public class RabbitMineRefreshService {
     // 矿场刷新任务队列
     private static final Map<String, Queue<BlockPos>> siteRefreshQueues = new ConcurrentHashMap<>();
     // 矿场方块状态映射
@@ -73,7 +74,7 @@ public class MineSiteRefreshService {
         siteDimensions.clear();
 
         try {
-            JsonObject config = MineSiteConfigService.getFullConfig();
+            JsonObject config = RabbitMineConfigService.getFullConfig();
             JsonArray sites = config.getAsJsonArray("sites");
 
             for (JsonElement element : sites) {
@@ -87,7 +88,7 @@ public class MineSiteRefreshService {
                     LOGGER.warn("矿场 {} 缺少安全点(safetyPoint)配置！", siteName);
                 } else {
                     try {
-                        MineSiteUtils.parseBlockPos(site.get("safetyPoint").getAsString());
+                        RabbitMineUtils.parseBlockPos(site.get("safetyPoint").getAsString());
                     } catch (Exception e) {
                         LOGGER.error("矿场 {} 的安全点配置无效: {}", siteName, e.getMessage());
                     }
@@ -133,7 +134,7 @@ public class MineSiteRefreshService {
     public static void scheduleRefreshWithDelay(String siteName, long delaySeconds) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        String initialMsg = "§6矿场 " + siteName + " 将在 " + MineSiteUtils.secondsToTime(delaySeconds+10) + " 后刷新！请注意有序离开矿场区域。";
+        String initialMsg = "§6矿场 " + siteName + " 将在 " + RabbitMineUtils.secondsToTime(delaySeconds+10) + " 后刷新！请注意有序离开矿场区域。";
         server.getPlayerList().broadcastSystemMessage(Component.literal(initialMsg), false);
 
         Timer timer = new Timer();
@@ -146,7 +147,6 @@ public class MineSiteRefreshService {
                 refreshTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        teleportPlayersFromSite(siteName);
                         prepareSiteRefresh(siteName);
                     }
                 }, 10000);
@@ -164,10 +164,10 @@ public class MineSiteRefreshService {
         String initialMsg;
         if (open) {
             // 安排矿场开启
-            initialMsg = "§6矿场 " + siteName + " 将在 " + MineSiteUtils.secondsToTime(delaySeconds) + " 后开启！请不要在矿场区域内逗留。";
+            initialMsg = "§6矿场 " + siteName + " 将在 " + RabbitMineUtils.secondsToTime(delaySeconds) + " 后开启！请不要在矿场区域内逗留。";
         } else {
             // 安排矿场关闭
-            initialMsg = "§6矿场 " + siteName + " 将在 " + MineSiteUtils.secondsToTime(delaySeconds) + " 后关闭！请尽快离开矿场区域。";
+            initialMsg = "§6矿场 " + siteName + " 将在 " + RabbitMineUtils.secondsToTime(delaySeconds) + " 后关闭！请尽快离开矿场区域。";
         }
         server.getPlayerList().broadcastSystemMessage(Component.literal(initialMsg), false);
 
@@ -175,13 +175,13 @@ public class MineSiteRefreshService {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                String command = "minesite " + (open ? "enable" : "disable") + " " + siteName;
+                String command = "RabbitMine " + (open ? "enable" : "disable") + " " + StringArgumentType.escapeIfRequired(siteName);
                 // 延迟10秒执行实际刷新
                 Timer refreshTimer = new Timer();
                 refreshTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        server.getCommands().performPrefixedCommand(source, command);
+                        server.execute(() -> server.getCommands().performPrefixedCommand(source, command));
                     }
                 }, 10000);
             }
@@ -206,8 +206,6 @@ public class MineSiteRefreshService {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // 在刷新前传送玩家
-                teleportPlayersFromSite(siteName);
                 // 实际刷新逻辑
                 prepareSiteRefresh(siteName);
             }
@@ -216,15 +214,14 @@ public class MineSiteRefreshService {
 
     // 准备矿场刷新
     public static void prepareSiteRefresh(String siteName) {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
         // 延迟10秒执行实际刷新
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 long prepareStart = System.nanoTime();
-
-                // 在刷新前传送玩家
-                teleportPlayersFromSite(siteName); // 新增传送逻辑
 
                 JsonObject site = siteConfigs.get(siteName);
                 if (site == null) return;
@@ -240,8 +237,8 @@ public class MineSiteRefreshService {
                 clearedSites.remove(siteName);
 
                 // 解析矿场位置
-                BlockPos pos1 = MineSiteUtils.parseBlockPos(site.get("pos1").getAsString());
-                BlockPos pos2 = MineSiteUtils.parseBlockPos(site.get("pos2").getAsString());
+                BlockPos pos1 = RabbitMineUtils.parseBlockPos(site.get("pos1").getAsString());
+                BlockPos pos2 = RabbitMineUtils.parseBlockPos(site.get("pos2").getAsString());
 
                 // 解析矿石配置
                 Map<BlockPos, BlockState> blockStates = new HashMap<>();
@@ -249,7 +246,7 @@ public class MineSiteRefreshService {
                 List<WeightedBlock> weightedBlocks = parseWeightedBlocks(mines);
 
                 // 计算区域范围
-                MineSiteUtils.RegionBounds mineArea = MineSiteUtils.RegionBounds.fromCorners(pos1, pos2);
+                RabbitMineUtils.RegionBounds mineArea = RabbitMineUtils.RegionBounds.fromCorners(pos1, pos2);
 
                 // 生成位置队列
                 Queue<BlockPos> positions = new LinkedList<>();
@@ -265,20 +262,22 @@ public class MineSiteRefreshService {
                     }
                 }
 
-                // 存储刷新任务
-                siteRefreshQueues.put(siteName, positions);
-                siteBlockStates.put(siteName, blockStates);
-
                 // 创建性能指标
                 RefreshMetrics metrics = new RefreshMetrics();
                 metrics.startTime = System.nanoTime();
                 metrics.prepareTime = metrics.startTime - prepareStart;
                 metrics.totalBlocks = positions.size();
-                refreshMetrics.put(siteName, metrics);
+                server.execute(() -> {
+                    if (siteConfigs.get(siteName) != site) return;
+                    teleportPlayersFromSite(siteName);
+                    siteRefreshQueues.put(siteName, positions);
+                    siteBlockStates.put(siteName, blockStates);
+                    refreshMetrics.put(siteName, metrics);
+                });
 
                 // 记录准备阶段性能
                 LOGGER.info("[PERF] Prepared refresh for site '{}': {} blocks, prepare took {} ms",
-                        siteName, positions.size(), MineSiteUtils.nsToMs(metrics.prepareTime));
+                        siteName, positions.size(), RabbitMineUtils.nsToMs(metrics.prepareTime));
 
                 // 记录日志
                 LOGGER.info("Scheduled refresh for mine site: {} with {} blocks", siteName, positions.size());
@@ -295,11 +294,11 @@ public class MineSiteRefreshService {
         teleportPlayersFromSite(siteName);
 
         // 解析矿场位置
-        BlockPos pos1 = MineSiteUtils.parseBlockPos(site.get("pos1").getAsString());
-        BlockPos pos2 = MineSiteUtils.parseBlockPos(site.get("pos2").getAsString());
+        BlockPos pos1 = RabbitMineUtils.parseBlockPos(site.get("pos1").getAsString());
+        BlockPos pos2 = RabbitMineUtils.parseBlockPos(site.get("pos2").getAsString());
 
         // 计算区域范围
-        MineSiteUtils.RegionBounds mineArea = MineSiteUtils.RegionBounds.fromCorners(pos1, pos2);
+        RabbitMineUtils.RegionBounds mineArea = RabbitMineUtils.RegionBounds.fromCorners(pos1, pos2);
 
         // 生成位置队列
         Queue<BlockPos> positions = new LinkedList<>();
@@ -332,7 +331,8 @@ public class MineSiteRefreshService {
             String blockId = mine.get("block").getAsString();
             int weight = mine.get("weight").getAsInt();
 
-            Block block = ForgeRegistries.BLOCKS.getValue(ResourceLocation.tryParse(blockId));
+            ResourceLocation id = ResourceLocation.tryParse(blockId);
+            Block block = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
             if (block != null) {
                 blocks.add(new WeightedBlock(block.defaultBlockState(), weight));
             }
@@ -364,11 +364,8 @@ public class MineSiteRefreshService {
 
     // 处理刷新任务
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-
-        MinecraftServer server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
-        if (server == null) return;
+    public static void onServerTick(ServerTickEvent.Post event) {
+        MinecraftServer server = event.getServer();
 
         Iterator<Map.Entry<String, Queue<BlockPos>>> iterator = siteRefreshQueues.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -418,7 +415,7 @@ public class MineSiteRefreshService {
             // 记录当前矿场的tick耗时
             long siteTickTime = System.nanoTime() - siteTickStart;
             LOGGER.debug("[PERF] Site '{}' processed {} blocks in {} ms ({} blocks/s)",
-                    siteName, count, MineSiteUtils.nsToMs(siteTickTime), MineSiteUtils.calculateBlocksPerSecond(count, siteTickTime));
+                    siteName, count, RabbitMineUtils.nsToMs(siteTickTime), RabbitMineUtils.calculateBlocksPerSecond(count, siteTickTime));
 
             // 更新性能指标
             RefreshMetrics metrics = refreshMetrics.get(siteName);
@@ -489,7 +486,7 @@ public class MineSiteRefreshService {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
         // 解析安全点坐标
-        BlockPos safetyPoint = MineSiteUtils.parseBlockPos(site.get("safetyPoint").getAsString());
+        BlockPos safetyPoint = RabbitMineUtils.parseBlockPos(site.get("safetyPoint").getAsString());
 
         // 获取矿场维度
         ResourceKey<Level> dimension = siteDimensions.get(siteName);
@@ -498,11 +495,11 @@ public class MineSiteRefreshService {
         ServerLevel level = server.getLevel(dimension);
         if (level == null) return;
         // 解析矿场区域
-        BlockPos pos1 = MineSiteUtils.parseBlockPos(site.get("pos1").getAsString());
-        BlockPos pos2 = MineSiteUtils.parseBlockPos(site.get("pos2").getAsString());
+        BlockPos pos1 = RabbitMineUtils.parseBlockPos(site.get("pos1").getAsString());
+        BlockPos pos2 = RabbitMineUtils.parseBlockPos(site.get("pos2").getAsString());
 
         // 计算区域范围
-        MineSiteUtils.RegionBounds mineArea = MineSiteUtils.RegionBounds.fromCorners(pos1, pos2);
+        RabbitMineUtils.RegionBounds mineArea = RabbitMineUtils.RegionBounds.fromCorners(pos1, pos2);
 
         // 查找区域内的玩家
         List<ServerPlayer> playersToTeleport = new ArrayList<>();
@@ -544,11 +541,11 @@ public class MineSiteRefreshService {
         long totalTime = System.nanoTime() - metrics.startTime;
         long activeTime = totalTime - metrics.prepareTime;
 
-        double totalTimeMs = MineSiteUtils.nsToMs(totalTime);
-        double activeTimeMs = MineSiteUtils.nsToMs(activeTime);
-        double prepareTimeMs = MineSiteUtils.nsToMs(metrics.prepareTime);
+        double totalTimeMs = RabbitMineUtils.nsToMs(totalTime);
+        double activeTimeMs = RabbitMineUtils.nsToMs(activeTime);
+        double prepareTimeMs = RabbitMineUtils.nsToMs(metrics.prepareTime);
         double avgBlocksPerTick = (double) metrics.totalBlocks / metrics.ticksTaken;
-        double blocksPerSecond = MineSiteUtils.calculateBlocksPerSecond(metrics.totalBlocks, activeTime);
+        double blocksPerSecond = RabbitMineUtils.calculateBlocksPerSecond(metrics.totalBlocks, activeTime);
         double efficiency = (activeTime / (double) totalTime) * 100;
 
         String totalTimeStr = String.format("%.3f", totalTimeMs);

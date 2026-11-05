@@ -1,10 +1,10 @@
-package com.tr4nce.minesite.service;
+package com.tr4nce.rabbitmine.service;
 
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
-import com.tr4nce.minesite.utils.MineSiteUtils;
+import com.tr4nce.rabbitmine.utils.RabbitMineUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
-public class MineSiteConfigService {
+public class RabbitMineConfigService {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Logger LOGGER = LogUtils.getLogger();
     private static Path configPath;
@@ -29,7 +29,11 @@ public class MineSiteConfigService {
         try {
             if (!Files.exists(configPath)) {
                 Files.createDirectories(configPath.getParent());
-                Files.createFile(configPath);
+                Path legacyConfig = configPath.resolveSibling("minesite.json");
+                if (Files.isRegularFile(legacyConfig)) {
+                    Files.copy(legacyConfig, configPath);
+                    return;
+                }
 
                 // 创建默认配置结构
                 JsonObject root = new JsonObject();
@@ -166,7 +170,7 @@ public class MineSiteConfigService {
     
     public static boolean setSafetyPoint(String siteName, String safetyPointString) {
         try {
-            BlockPos safetyPoint = MineSiteUtils.parseBlockPos(safetyPointString);
+            BlockPos safetyPoint = RabbitMineUtils.parseBlockPos(safetyPointString);
             JsonObject config = getFullConfig();
             JsonArray sites = config.getAsJsonArray("sites");
 
