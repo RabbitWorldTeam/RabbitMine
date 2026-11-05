@@ -1,0 +1,38 @@
+{
+  "parent": "rabbitmine:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:map"
+    },
+    "title": {
+      "translate": "advancements.rabbitmine.miners_passport.title"
+    },
+    "description": {
+      "translate": "advancements.rabbitmine.miners_passport.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  },
+  "criteria": {
+    "rabbit": {
+      "trigger": "minecraft:impossible"
+    },
+    "volcano": {
+      "trigger": "minecraft:impossible"
+    },
+    "sakura": {
+      "trigger": "minecraft:impossible"
+    },
+    "sea": {
+      "trigger": "minecraft:impossible"
+    },
+    "the_end": {
+      "trigger": "minecraft:impossible"
+    },
+    "minecraft": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -272,7 +272,7 @@ public class RabbitMineRefreshService {
                 metrics.totalBlocks = positions.size();
                 server.execute(() -> {
                     if (siteConfigs.get(siteName) != site) return;
-                    teleportPlayersFromSite(siteName);
+                    RabbitMineAdvancements.beginRefresh(siteName, teleportPlayersFromSite(siteName));
                     siteRefreshQueues.put(siteName, positions);
                     siteBlockStates.put(siteName, blockStates);
                     refreshMetrics.put(siteName, metrics);
@@ -317,6 +317,8 @@ public class RabbitMineRefreshService {
                 }
             }
         }
+
+        RabbitMineAdvancements.cancelRefresh(siteName);
 
         // 存储清除任务
         siteRefreshQueues.put(siteName, positions);
@@ -408,6 +410,9 @@ public class RabbitMineRefreshService {
 
                 if (state != null && level.isLoaded(pos)) {
                     level.setBlock(pos, state, 3);
+                    if (level.getBlockState(pos).is(state.getBlock())) {
+                        RabbitMineAdvancements.recordBlock(level, pos, siteName, state);
+                    }
                     count++;
                 }
             }
@@ -428,6 +433,8 @@ public class RabbitMineRefreshService {
             if (queue.isEmpty()) {
                 iterator.remove();
                 siteBlockStates.remove(siteName);
+
+                RabbitMineAdvancements.finishRefresh(siteName);
 
                 // 输出完整性能报告
                 if (metrics != null) {
@@ -480,20 +487,20 @@ public class RabbitMineRefreshService {
     }
 
     // 传送矿场内的玩家到安全点
-    private static void teleportPlayersFromSite(String siteName) {
+    private static Set<UUID> teleportPlayersFromSite(String siteName) {
         JsonObject site = siteConfigs.get(siteName);
-        if (site == null || !site.has("safetyPoint")) return;
+        if (site == null || !site.has("safetyPoint")) return Set.of();
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) return;
+        if (server == null) return Set.of();
         // 解析安全点坐标
         BlockPos safetyPoint = RabbitMineUtils.parseBlockPos(site.get("safetyPoint").getAsString());
 
         // 获取矿场维度
         ResourceKey<Level> dimension = siteDimensions.get(siteName);
-        if (dimension == null) return;
+        if (dimension == null) return Set.of();
 
         ServerLevel level = server.getLevel(dimension);
-        if (level == null) return;
+        if (level == null) return Set.of();
         // 解析矿场区域
         BlockPos pos1 = RabbitMineUtils.parseBlockPos(site.get("pos1").getAsString());
         BlockPos pos2 = RabbitMineUtils.parseBlockPos(site.get("pos2").getAsString());
@@ -514,18 +521,22 @@ public class RabbitMineRefreshService {
             }
         }
 
+        Set<UUID> evacuated = new HashSet<>();
         // 传送玩家
         if (!playersToTeleport.isEmpty()) {
             for (ServerPlayer player : playersToTeleport) {
-                player.teleportTo(
+                boolean moved = player.teleportTo(
                         level,
                         safetyPoint.getX() + 0.5,  // 中心点
                         safetyPoint.getY(),
                         safetyPoint.getZ() + 0.5,  // 中心点
+                        Set.of(),
                         player.getYRot(),
                         player.getXRot()
                 );
 
+                if (!moved) continue;
+                evacuated.add(player.getUUID());
                 player.sendSystemMessage(Component.literal(
                         "§e矿场 " + siteName + " 即将刷新，已将你传送至安全区域"
                 ));
@@ -534,6 +545,7 @@ public class RabbitMineRefreshService {
             LOGGER.info("已将 {} 名玩家从矿场 {} 传送至安全点",
                     playersToTeleport.size(), siteName);
         }
+        return evacuated;
     }
 
     // 输出完整性能报告
