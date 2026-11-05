@@ -1,7 +1,6 @@
 {
     "pack": {
-        "description": "minesite resources",
-        "pack_format": 15
-        ,"forge:server_data_pack_format": 12
+        "description": "RabbitMine resources",
+        "pack_format": 34
     }
 }

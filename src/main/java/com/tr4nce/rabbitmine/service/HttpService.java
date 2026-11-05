@@ -1,4 +1,4 @@
-package com.tr4nce.minesite.service;
+package com.tr4nce.rabbitmine.service;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.tr4nce.minesite.config.Config;
+import com.tr4nce.rabbitmine.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,20 +102,20 @@ public class HttpService {
                     // 处理 /api/open 路径的请求
                     name = json.get("name").getAsString();
                     delay = json.get("delay").getAsInt();
-                    MineSiteRefreshService.scheduleSiteOpenOrClose(name,true, delay);
+                    RabbitMineRefreshService.scheduleSiteOpenOrClose(name,true, delay);
                     // 这里可以添加打开 URL 的逻辑
                     return "{\"status\":\"success\", \"message\":\"Opened Site " + name + " with delay " + delay + "\"}";
                 case "/api/close":
                     // 处理 /api/close 路径的请求
                     name = json.get("name").getAsString();
                     delay = json.get("delay").getAsInt();
-                    MineSiteRefreshService.scheduleSiteOpenOrClose(name,false, delay);
+                    RabbitMineRefreshService.scheduleSiteOpenOrClose(name,false, delay);
                     return "{\"status\":\"success\", \"message\":\"Closed Site " + name + " with delay " + delay + "\"}";
                 case "/api/refresh":
                     // 处理 /api/status 路径的请求
                     name = json.get("name").getAsString();
                     delay = json.get("delay").getAsInt();
-                    MineSiteRefreshService.scheduleRefreshWithDelay(name, delay);
+                    RabbitMineRefreshService.scheduleRefreshWithDelay(name, delay);
                     return "{\"status\":\"success\", \"message\":\"Refreshed Site " + name + " with delay " + delay + "\"}";
                 default:
                     throw new IllegalArgumentException("Unknown API endpoint: " + uri);

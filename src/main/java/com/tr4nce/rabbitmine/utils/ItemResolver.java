@@ -1,8 +1,8 @@
-package com.tr4nce.minesite.utils;
+package com.tr4nce.rabbitmine.utils;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,7 +10,7 @@ public class ItemResolver {
     private static final Logger LOGGER = LogManager.getLogger();
 
     // 默认物品（当配置无效时使用）
-    private static final Item DEFAULT_ITEM = ForgeRegistries.ITEMS.getValue(ResourceLocation.parse("minecraft:stick"));
+    private static final Item DEFAULT_ITEM = net.minecraft.world.item.Items.STICK;
 
     /**
      * 将配置字符串转换为物品对象
@@ -37,7 +37,7 @@ public class ItemResolver {
             return DEFAULT_ITEM;
         }
 
-        Item item = ForgeRegistries.ITEMS.getValue(itemId);
+        Item item = BuiltInRegistries.ITEM.getOptional(itemId).orElse(null);
         if (item == null) {
             LOGGER.error("找不到物品: {}", itemId);
             return DEFAULT_ITEM;

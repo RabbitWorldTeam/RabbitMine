@@ -1,8 +1,8 @@
-package com.tr4nce.minesite.utils;
+package com.tr4nce.rabbitmine.utils;
 
 import net.minecraft.core.BlockPos;
 
-public class MineSiteUtils {
+public class RabbitMineUtils {
     // 解析方块位置
     public static BlockPos parseBlockPos(String posStr) {
         String[] parts = posStr.split(",");

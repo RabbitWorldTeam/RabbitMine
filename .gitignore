@@ -4,7 +4,6 @@
 !src/**/build/
 # Minecraft runtime libraries
 /run
-/gradle
 
 # Ignore Gradle GUI config
 gradle-app.setting
