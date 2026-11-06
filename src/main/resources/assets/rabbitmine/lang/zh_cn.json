@@ -1,12 +1,16 @@
 {
-    "advancements.rabbitmine.root.title": "RabbitMine",
-    "advancements.rabbitmine.root.description": "挖掘一块由 RabbitMine 刷新生成的方块。",
-    "advancements.rabbitmine.rabbit_froglights.title": "兔子的三色灯",
-    "advancements.rabbitmine.rabbit_froglights.description": "在 Rabbit 挖到三种颜色的蛙明灯。",
-    "advancements.rabbitmine.volcano_sponge.title": "海绵怎么会在这里？",
-    "advancements.rabbitmine.volcano_sponge.description": "在 Volcano 挖到一块湿海绵。",
-    "advancements.rabbitmine.miners_passport.title": "矿工护照",
-    "advancements.rabbitmine.miners_passport.description": "在 Rabbit、Volcano、Sakura、Sea、TheEnd 和 minecraft 各挖过一块刷新生成的方块。",
-    "advancements.rabbitmine.next_round.title": "下一轮见",
-    "advancements.rabbitmine.next_round.description": "被送至安全点后，等这一轮刷新完成，回来挖下第一块。"
+  "advancements.rabbitmine.root.title": "RabbitMine",
+  "advancements.rabbitmine.root.description": "挖掘一块由 RabbitMine 刷新生成的方块。",
+  "advancements.rabbitmine.rabbit_froglights.title": "兔子的三色灯",
+  "advancements.rabbitmine.rabbit_froglights.description": "在 Rabbit 挖到三种颜色的蛙明灯。",
+  "advancements.rabbitmine.volcano_sponge.title": "海绵怎么会在这里？",
+  "advancements.rabbitmine.volcano_sponge.description": "在 Volcano 挖到一块湿海绵。",
+  "advancements.rabbitmine.miners_passport.title": "矿工护照",
+  "advancements.rabbitmine.miners_passport.description": "在 Rabbit、Volcano、Sakura、Sea、TheEnd 和 minecraft 各挖过一块刷新生成的方块。",
+  "advancements.rabbitmine.next_round.title": "下一轮见",
+  "advancements.rabbitmine.next_round.description": "被送至安全点后，等这一轮刷新完成，回来挖下第一块。",
+  "item.rabbitmine.iron_mining_hammer": "铁采矿锤",
+  "item.rabbitmine.copper_mining_hammer": "铜采矿锤",
+  "item.rabbitmine.gold_mining_hammer": "金采矿锤",
+  "item.rabbitmine.diamond_mining_hammer": "钻石采矿锤"
 }
