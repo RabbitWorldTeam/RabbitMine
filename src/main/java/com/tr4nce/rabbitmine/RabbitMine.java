@@ -2,9 +2,11 @@ package com.tr4nce.rabbitmine;
 
 import com.tr4nce.rabbitmine.command.RabbitMineCMD;
 import com.tr4nce.rabbitmine.config.Config;
+import com.tr4nce.rabbitmine.item.RabbitMineItems;
 import com.tr4nce.rabbitmine.service.HttpService;
 import com.tr4nce.rabbitmine.service.RabbitMineConfigService;
 import com.tr4nce.rabbitmine.service.RabbitMineRefreshService;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
@@ -23,7 +25,8 @@ public class RabbitMine {
 
     private HttpService httpService;
 
-    public RabbitMine(ModContainer container) {
+    public RabbitMine(ModContainer container, IEventBus modBus) {
+        RabbitMineItems.register(modBus);
         RabbitMineConfigService.init(MODID);
         RabbitMineRefreshService.init();
         importLegacyCommonConfig();

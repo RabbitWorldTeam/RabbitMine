@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "rabbitmine:item/iron_mining_hammer"
+  }
+}
