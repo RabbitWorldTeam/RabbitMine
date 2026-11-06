@@ -27,3 +27,6 @@ gradle-app.setting
 # IntelliJ IDEA local project files
 /.idea/
 *.iml
+
+# Local VS Code launch configuration
+/.vscode/launch.json
