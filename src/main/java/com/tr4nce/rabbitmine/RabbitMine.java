@@ -2,7 +2,6 @@ package com.tr4nce.rabbitmine;
 
 import com.tr4nce.rabbitmine.command.RabbitMineCMD;
 import com.tr4nce.rabbitmine.config.Config;
-import com.tr4nce.rabbitmine.item.RabbitMineItems;
 import com.tr4nce.rabbitmine.service.HttpService;
 import com.tr4nce.rabbitmine.service.RabbitMineConfigService;
 import com.tr4nce.rabbitmine.service.RabbitMineRefreshService;
@@ -26,7 +25,6 @@ public class RabbitMine {
     private HttpService httpService;
 
     public RabbitMine(ModContainer container, IEventBus modBus) {
-        RabbitMineItems.register(modBus);
         RabbitMineConfigService.init(MODID);
         RabbitMineRefreshService.init();
         importLegacyCommonConfig();

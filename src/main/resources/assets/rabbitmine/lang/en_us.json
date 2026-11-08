@@ -8,9 +8,5 @@
   "advancements.rabbitmine.miners_passport.title": "Miner's Passport",
   "advancements.rabbitmine.miners_passport.description": "Mine at Rabbit, Volcano, Sakura, Sea, TheEnd, and minecraft.",
   "advancements.rabbitmine.next_round.title": "See You Next Round",
-  "advancements.rabbitmine.next_round.description": "After RabbitMine evacuates you, return and mine a block from that refresh.",
-  "item.rabbitmine.iron_mining_hammer": "Iron Mining Hammer",
-  "item.rabbitmine.copper_mining_hammer": "Copper Mining Hammer",
-  "item.rabbitmine.gold_mining_hammer": "Golden Mining Hammer",
-  "item.rabbitmine.diamond_mining_hammer": "Diamond Mining Hammer"
+  "advancements.rabbitmine.next_round.description": "After RabbitMine evacuates you, return and mine a block from that refresh."
 }
