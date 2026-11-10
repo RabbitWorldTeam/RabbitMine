@@ -5,6 +5,7 @@ plugins {
 
 version = providers.gradleProperty('mod_version').get()
 group = 'com.tr4nce.rabbitmine'
+base { archivesName = "rabbitmine-${minecraft_version}-neoforge" }
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
