@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Build and test
+        run: bash ./gradlew build
+      - name: Tag and publish the tested JAR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          minecraft=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '\r')
+          version=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '\r')
+          [[ "$minecraft" =~ ^[0-9]+(\.[0-9]+)+$ ]]
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::A release requires a stable mod_version such as 1.2.3."
+            exit 1
+          fi
+          jar="rabbitmine-$minecraft-neoforge-$version.jar"
+          test -s "build/libs/$jar"
+          tag="v$version"
+          ref="refs/tags/$tag"
+
+          # Prefer the commit behind an annotated tag, when present.
+          refs=$(git -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+            ls-remote "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$ref" "$ref^{}")
+          target=$(awk -v ref="$ref" '$2 == ref { tag = $1 } $2 == ref "^{}" { commit = $1 } END { print (commit ? commit : tag) }' <<< "$refs")
+          if [[ -z "$target" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f "ref=$ref" -f "sha=$GITHUB_SHA" --silent
+          elif [[ "$target" != "$GITHUB_SHA" ]]; then
+            echo "::error::$tag already points to $target. Update mod_version before publishing."
+            exit 1
+          fi
+
+          if release=$(gh release view "$tag" --json isDraft,assets 2>/dev/null); then
+            if jq -e '.isDraft' <<< "$release" > /dev/null; then
+              gh release upload "$tag" "build/libs/$jar" --clobber
+              gh release edit "$tag" --draft=false
+            elif jq -e --arg jar "$jar" '.assets | any(.name == $jar)' <<< "$release" > /dev/null; then
+              echo "$tag is already published with $jar."
+            else
+              echo "::error::$tag is already published without the expected JAR."
+              exit 1
+            fi
+          else
+            gh release create "$tag" "build/libs/$jar" --verify-tag --title "$tag" --generate-notes
+          fi
