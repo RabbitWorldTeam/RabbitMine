@@ -9,6 +9,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.logging.LogUtils;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.tr4nce.rabbitmine.RabbitMine;
 import com.tr4nce.rabbitmine.utils.RegionSelector;
 import com.tr4nce.rabbitmine.config.Config;
 import com.tr4nce.rabbitmine.service.RabbitMineConfigService;
@@ -28,7 +29,7 @@ public class RabbitMineCMD {
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
 
-        dispatcher.register(buildCommand("RabbitMine"));
+        dispatcher.register(buildCommand(RabbitMine.MODID));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> buildCommand(String name) {
@@ -322,14 +323,14 @@ public class RabbitMineCMD {
     private static int showHelp(CommandContext<CommandSourceStack> ctx) {
         ctx.getSource().sendSuccess(
                 () -> Component.literal("§6RabbitMine 命令帮助:\n" +
-                        "§a/RabbitMine create <名称> §7- 创建新矿场\n" +
-                        "§a/RabbitMine delete <名称> §7- 删除指定矿场\n" +
-                        "§a/RabbitMine enable <名称> §7- 启用指定矿场\n" +
-                        "§a/RabbitMine disable <名称> §7- 禁用指定矿场\n" +
-                        "§a/RabbitMine list §7- 查看所有矿场\n" +
-                        "§a/RabbitMine reload §7- §b重载配置文件§7（热重载）\n" +
-                        "§a/RabbitMine refresh <名称> §7- 立即刷新指定矿场\n" +
-                        "§a/RabbitMine help §7- 显示此帮助信息\n" +
+                        "§a/rabbitmine create <名称> §7- 创建新矿场\n" +
+                        "§a/rabbitmine delete <名称> §7- 删除指定矿场\n" +
+                        "§a/rabbitmine enable <名称> §7- 启用指定矿场\n" +
+                        "§a/rabbitmine disable <名称> §7- 禁用指定矿场\n" +
+                        "§a/rabbitmine list §7- 查看所有矿场\n" +
+                        "§a/rabbitmine reload §7- §b重载配置文件§7（热重载）\n" +
+                        "§a/rabbitmine refresh <名称> §7- 立即刷新指定矿场\n" +
+                        "§a/rabbitmine help §7- 显示此帮助信息\n" +
                         "§b区域选择工具: §e" + Config.SELECTION_TOOL.get() + "\n"),
                 false
         );
