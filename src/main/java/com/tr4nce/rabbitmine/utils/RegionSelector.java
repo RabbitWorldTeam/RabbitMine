@@ -119,7 +119,7 @@ public class RegionSelector {
             player.sendSystemMessage(
                     Component.literal("§a区域大小: §e" + width + " x " + height + " x " + depth + " (" + volume + "个方块)")
             );
-            player.sendSystemMessage(Component.literal("§a现在可以使用 §e/RabbitMine create <名称> §a创建矿场!"));
+            player.sendSystemMessage(Component.literal("§a现在可以使用 §e/rabbitmine create <名称> §a创建矿场!"));
         } else {
             player.sendSystemMessage(Component.literal("§c请先完成左键和右键的选择。"));
         }
